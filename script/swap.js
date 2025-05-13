@@ -2,7 +2,7 @@ const { ethers } = require("ethers");
 const routerAbi = require("./routerABI.json");
 
 // === Config ===
-const WETH = "0xC97B4e92fB267bB11b1CD2d475F9E8c16b433289";
+const WBDAG = "0xC97B4e92fB267bB11b1CD2d475F9E8c16b433289";
 const USDT = "0x38e659126AeB5dE4C243229b34Bd99f11D5bb2D3";
 const SWAP_ROUTER = "0x45a05B1e370EC9d73c5D8E588dD038b975B1ee36";
 
@@ -12,7 +12,7 @@ const FEE = 3000; // 0.3%
 const POOL_ADDRESS = "0xC79DA839Fd3044a477D6542A1e7B7c99B7dE7169";
 
 /*
-    Swap WETH → USDT
+    Swap WBDAG → USDT
     Run script: node script/swap.js
 */
 
@@ -32,7 +32,7 @@ const poolAbi = new ethers.Interface([
 
 // Helper functions
 const approveWeth = async (wallet, amount) => {
-  const token = new ethers.Contract(WETH, IERC20Abi, wallet);
+  const token = new ethers.Contract(WBDAG, IERC20Abi, wallet);
   const tx = await token.approve(SWAP_ROUTER, amount);
   const receipt = await tx.wait();
   console.log(`Approve tx hash: ${receipt.hash}`);
@@ -51,18 +51,18 @@ const getBalance = async (tokenAddress, wallet, provider) => {
 const getPoolValues = async (wallet, provider) => {
   const pool = new ethers.Contract(POOL_ADDRESS, poolAbi, provider);
   let usdtBalance = await getBalance(USDT, wallet.address, provider);
-  let wethBalance = await getBalance(WETH, wallet.address, provider);
+  let wethBalance = await getBalance(WBDAG, wallet.address, provider);
 
   console.log("\nUser balance [USDT]:", usdtBalance);
-  console.log("User balance [WETH]:", wethBalance);
+  console.log("User balance [WBDAG]:", wethBalance);
 
   const liquidity = await pool.liquidity();
   const { sqrtPriceX96, tick } = await pool.slot0();
   usdtBalance = await getBalance(USDT, POOL_ADDRESS, provider);
-  wethBalance = await getBalance(WETH, POOL_ADDRESS, provider);
+  wethBalance = await getBalance(WBDAG, POOL_ADDRESS, provider);
 
   console.log("Pool balance [USDT]:", usdtBalance);
-  console.log("Pool balance [WETH]:", wethBalance);
+  console.log("Pool balance [WBDAG]:", wethBalance);
   console.log("Price in tick:", tick);
   console.log("new sqrtPriceX96:", sqrtPriceX96);
   console.log("Liquidity in pool:", liquidity.toString());
@@ -73,19 +73,19 @@ async function swapTokens() {
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const wallet = new ethers.Wallet(DEPLOYER_PK, provider);
   const router = new ethers.Contract(SWAP_ROUTER, routerAbi, wallet);
-  const amount = ethers.parseEther("0.001"); // WETH
+  const amount = ethers.parseEther("0.001"); // WBDAG
 
   // === Approve tokens ===
   await approveWeth(wallet, amount);
 
   // === Check Allowance ===
-  const token = new ethers.Contract(WETH, IERC20Abi, provider);
+  const token = new ethers.Contract(WBDAG, IERC20Abi, provider);
   console.log(await token.allowance(wallet.address, SWAP_ROUTER));
   await getPoolValues(wallet, provider);
 
   // === Swap exactInputSingle ===
   const input_params = {
-    tokenIn: WETH,
+    tokenIn: WBDAG,
     tokenOut: USDT,
     fee: FEE,
     recipient: wallet.address,
@@ -98,7 +98,7 @@ async function swapTokens() {
 
   // // === Swap exactOutputSingle ===
   // // const output_params = {
-  // //   tokenIn: WETH,
+  // //   tokenIn: WBDAG,
   // //   tokenOut: USDT,
   // //   fee: FEE,
   // //   recipient: wallet.address,
